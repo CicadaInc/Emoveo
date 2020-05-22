@@ -1,9 +1,53 @@
 from database import DB
 from log import logger, log_object
 
-from typing import Union, Tuple
+from typing import Union, Tuple, Iterable
 
 db = DB()
+
+
+class Question:
+
+    def __init__(self,
+                 id: int,
+                 text: str,
+                 type: str,
+                 correct: int,
+                 variants: Iterable[str],
+                 media: dict = None):
+        self.id = id
+        self.text = text
+        self.type = type
+        self.correct = correct
+        self.variants = list(variants)
+        self.media = dict(media)
+
+    @classmethod
+    def from_id(cls, id: int):
+        data = db.get_question(id)
+        if not data:
+            raise IndexError("Incorrect question id \"%d\"" % (id,))
+        return cls(data['id'], data['text'], data['type'],
+                   data['correct'], data['variants'].split(';'),
+                   dict(db.get_media(data['media'])) if data['media'] else {})
+
+    def answer(self,
+               k: Union[int, str]) -> Tuple[bool, Union[int, None]]:
+        """
+        Ответить на вопрос
+
+        :param k: Индекс или текст ответа
+        :return: is correct, user answer as index
+        """
+        if isinstance(k, str) and k in self.variants:
+            k = self.variants.index(k)
+        if isinstance(k, str) or not (0 <= k < len(self.variants)):
+            logger.warning(
+                'User answer doesn\'t represent any of available variants\n'
+                'User: "%s", Variants: "%s", QID: %d' % (k, self.variants, self.id)
+            )
+            return False, None
+        return k == self.correct, k
 
 
 class Test:
@@ -35,21 +79,13 @@ class Test:
         self.stats['skipped'] += 1
         self.next()
 
-    def answer(self, k):
+    def answer(self,
+               k: Union[int, str]) -> Tuple[bool, Union[int, None], Question]:
         """
         Ответить на вопрос теста
 
-        Parameters
-        ----------
-        k : Union[int, str]
-            Индекс или текст ответа
-
-        Returns
-        -------
-        Tuple[bool, int, Question]
-            is correct,
-            user answer index,
-            question object
+        :param k: Индекс или текст ответа
+        :return: is correct, user answer as index, question object
         """
         if self.question:
             q = self.question
@@ -77,48 +113,3 @@ class ImageTest(Test):
         super().__init__()
         self.question_ids = db.get_question_ids(types=['image'])
         self.next()
-
-
-class Question:
-
-    def __init__(self, id, text, type, correct, variants, media=None):
-        self.id = id
-        self.text = text
-        self.type = type
-        self.correct = correct
-        self.variants = variants
-        self.media = media
-
-    @classmethod
-    def from_id(cls, id):
-        data = db.get_question(id)
-        if not data:
-            raise IndexError("Incorrect question id \"%s\"" % (id,))
-        return cls(data[0], data[1], data[2],
-                   data[3], data[4].split(';'),
-                   dict(db.get_media(data[5])) if data[5] else {})
-
-    def answer(self, k):
-        """
-        Ответить на вопрос
-
-        Parameters
-        ----------
-        k : Union[int, str]
-            Индекс или текст ответа
-
-        Returns
-        -------
-        Tuple[bool, int]
-            is correct,
-            user answer index or None
-        """
-        if isinstance(k, str) and k in self.variants:
-            k = self.variants.index(k)
-        if isinstance(k, str) or not (0 <= k < len(self.variants)):
-            logger.warning(
-                'User answer doesn\'t represent any of available variants\n'
-                'User: "%s", Variants: "%s", QID: %d' % (k, self.variants, self.id)
-            )
-            return False, None
-        return k == self.correct, k
