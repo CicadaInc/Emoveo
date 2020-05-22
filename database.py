@@ -197,7 +197,7 @@ class DB(BaseDB):
         elif os.path.isfile(os.path.join(MEDIA_PATH, path)):
             pass
         else:
-            raise FileNotFoundError("Media file not found, database unchanged")
+            raise FileNotFoundError("Media file \"%s\" not found, database unchanged" % (path,))
 
         # self.con.execute(
         #     "INSERT INTO Media (type, path) VALUES (?, ?)",

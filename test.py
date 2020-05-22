@@ -97,19 +97,22 @@ class Test:
             raise RuntimeError("Test is already completed")
 
 
-class CombinedTest(Test):
-    """Тест по всем типам вопросов"""
+class CustomizableTest(Test):
 
-    def __init__(self):
+    def __init__(self, n=50, **kwargs):
         super().__init__()
-        self.question_ids = db.get_question_ids()
-        self.next()
+        self.question_ids = db.get_question_ids(n=n, **kwargs)
 
 
-class ImageTest(Test):
+class ImageTest(CustomizableTest):
     """Тест по изображениям"""
 
-    def __init__(self):
-        super().__init__()
-        self.question_ids = db.get_question_ids(types=['image'])
-        self.next()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, type='image', **kwargs)
+
+
+class VideoTest(CustomizableTest):
+    """Тест по видеофайлам"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, type='video', **kwargs)
