@@ -133,11 +133,11 @@ class DB(BaseDB):
     """Связующий класс для работы с базой данных"""
 
     def __init__(self):
-        super().__init__(DB_PATH)
-        if not os.path.isdir(MEDIA_PATH):
-            os.mkdir(MEDIA_PATH)
-        if not os.path.isdir(MEDIA_AUTONAME_ADD_PATH):
-            os.mkdir(MEDIA_AUTONAME_ADD_PATH)
+        super().__init__(PATH.DB)
+        if not os.path.isdir(PATH.MEDIA):
+            os.mkdir(PATH.MEDIA)
+        if not os.path.isdir(PATH.MEDIA_AUTONAME):
+            os.mkdir(PATH.MEDIA_AUTONAME)
 
         self.con.execute("CREATE TABLE IF NOT EXISTS Media "
                          "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, "
@@ -161,9 +161,9 @@ class DB(BaseDB):
         return max(map(
             lambda e:
             int(e.split('.')[0])
-            if e.rsplit('.', 1)[0].isdigit() and os.path.isfile(os.path.join(MEDIA_PATH, e))
+            if e.rsplit('.', 1)[0].isdigit() and os.path.isfile(os.path.join(PATH.MEDIA, e))
             else 0,
-            os.listdir(MEDIA_PATH)
+            os.listdir(PATH.MEDIA)
         )) + 1
 
     def add_media(self, path: str, **kwargs):
@@ -191,10 +191,10 @@ class DB(BaseDB):
             logger.warning("Adding file with forced type \"%s\"" % (force_type,))
         kwargs['type'] = force_type
 
-        if os.path.isfile(os.path.join(MEDIA_AUTONAME_ADD_PATH, path)):
+        if os.path.isfile(os.path.join(PATH.MEDIA_AUTONAME, path)):
             old_path, path = path, str(self.auto_media_name()) + ext
-            os.rename(os.path.join(MEDIA_AUTONAME_ADD_PATH, old_path), os.path.join(MEDIA_PATH, path))
-        elif os.path.isfile(os.path.join(MEDIA_PATH, path)):
+            os.rename(os.path.join(PATH.MEDIA_AUTONAME, old_path), get_media_path(path))
+        elif os.path.isfile(get_media_path(path)):
             pass
         else:
             raise FileNotFoundError("Media file \"%s\" not found, database unchanged" % (path,))
@@ -217,7 +217,7 @@ class DB(BaseDB):
         """Найти в базе данных информацию о медиа файле по id или пути относительно папки MEDIA_PATH"""
         if isinstance(media, int) or isinstance(media, str) and media.isdigit():
             return self.get_media(int(media))
-        elif os.path.isfile(os.path.join(MEDIA_PATH, media)):
+        elif os.path.isfile(get_media_path(media)):
             self.cursor.execute(
                 "SELECT * FROM Media WHERE path = ?",
                 (os.path.normcase(os.path.normpath(media)),))

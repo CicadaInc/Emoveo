@@ -12,10 +12,10 @@ logger = logging.getLogger()
 logger.handlers.clear()
 logger.setLevel(LOG_LEVEL)
 
-if not os.path.isdir(LOG_PATH):
-    os.mkdir(LOG_PATH)
+if not os.path.isdir(PATH.LOG):
+    os.mkdir(PATH.LOG)
 
-last_handler = logging.FileHandler(os.path.join(LOG_PATH, 'last.log'), mode='w')
+last_handler = logging.FileHandler(os.path.join(PATH.LOG, 'last.log'), mode='w')
 last_handler.setFormatter(FORMATTER)
 logger.addHandler(last_handler)
 
@@ -29,7 +29,7 @@ form = {
     "sec": session_time.tm_sec
 }
 session_handler = logging.FileHandler(
-    os.path.join(LOG_PATH, 'session ' + LOG_FILE_PATTERN.format(**form) + '.log'),
+    os.path.join(PATH.LOG, 'session ' + LOG_FILE_PATTERN.format(**form) + '.log'),
     mode='w')
 session_handler.setFormatter(FORMATTER)
 logger.addHandler(session_handler)
@@ -37,6 +37,8 @@ logger.addHandler(session_handler)
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(FORMATTER)
 logger.addHandler(stream_handler)
+
+sys.excepthook = except_hook
 
 
 class LogEncoder(json.JSONEncoder):
