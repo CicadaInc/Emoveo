@@ -8,6 +8,9 @@ db = DB()
 
 class Question:
 
+    id: int
+    type: str
+
     def __init__(self,
                  id: int,
                  text: str,
@@ -21,6 +24,7 @@ class Question:
         self.correct = correct
         self.variants = list(variants)
         self.media = dict(media)
+        self.answered = 0
 
     @classmethod
     def from_id(cls, id: int):
@@ -31,23 +35,21 @@ class Question:
                    data['correct'], data['variants'].split(';'),
                    dict(db.get_media(data['media'])) if data['media'] else {})
 
-    def answer(self,
-               k: Union[int, str]) -> Tuple[bool, Union[int, None]]:
+    def answer(self, k: int) -> bool:
         """
         Ответить на вопрос
 
-        :param k: Индекс или текст ответа
-        :return: is correct, user answer as index
+        :param k: Индекс ответа
+        :return: is correct
         """
-        if isinstance(k, str) and k in self.variants:
-            k = self.variants.index(k)
-        if isinstance(k, str) or not (0 <= k < len(self.variants)):
+        self.answered += 1
+        if not (0 <= k < len(self.variants)):
             logger.warning(
                 'User answer doesn\'t represent any of available variants\n'
                 'User: "%s", Variants: "%s", QID: %d' % (k, self.variants, self.id)
             )
-            return False, None
-        return k == self.correct, k
+            return False
+        return k == self.correct
 
 
 class Test:
@@ -72,27 +74,27 @@ class Test:
             self.question = None
         if not self.completed:
             self.question = Question.from_id(self.question_ids[0])
-            self.stats['total'] += 1
 
     def skip(self):
         """Пропустить вопрос (Если будет реализовано)"""
+        self.stats['total'] += 1
         self.stats['skipped'] += 1
         self.next()
 
-    def answer(self,
-               k: Union[int, str]) -> Tuple[bool, Union[int, None], Question]:
+    def answer(self, k: int) -> bool:
         """
         Ответить на вопрос теста
 
-        :param k: Индекс или текст ответа
-        :return: is correct, user answer as index, question object
+        :param k: Индекс ответа
+        :return: is correct
         """
+        if self.question.answered > 0:
+            raise RuntimeError("Question is already answered")
         if self.question:
-            q = self.question
-            self.next()
-            correct, index = q.answer(k)
+            self.stats['total'] += 1
+            correct = self.question.answer(k)
             self.stats['correct' if correct else 'incorrect'] += 1
-            return correct, index, q
+            return correct
         else:
             raise RuntimeError("Test is already completed")
 
@@ -102,6 +104,7 @@ class CustomizableTest(Test):
     def __init__(self, n=50, **kwargs):
         super().__init__()
         self.question_ids = db.get_question_ids(n=n, **kwargs)
+        self.next()
 
 
 class ImageTest(CustomizableTest):
