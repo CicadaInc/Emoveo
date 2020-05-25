@@ -300,8 +300,11 @@ class QuestionTab(Tab, uic.loadUiType(get_path("UI\\QuestionTab.ui"))[0]):
 
     @text.setter
     def text(self, txt: str):
-        self.text_label.setText(txt)
-        self.text_group.show()
+        if txt:
+            self.text_label.setText(txt)
+            self.text_group.show()
+        else:
+            del self.text
 
     @text.deleter
     def text(self):
