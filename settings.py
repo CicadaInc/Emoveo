@@ -13,7 +13,7 @@ LOG_FILE_PATTERN = "{day}.{month}.{year} {hour}.{min} {sec}"
 MEDIA_FORMAT = {'image': {'.jpg', '.png', '.jpeg'}, 'video': {'.mp4', '.mkv', '.avi'}}
 
 LOAD_RELATIVE = False
-LOAD_MEIPASS = True
+LOAD_MEIPASS = False
 
 LOG_PATH_RELATIVE = 'Logs'
 MEDIA_PATH_RELATIVE = 'Media'
@@ -28,7 +28,7 @@ class PATH:
     ENGINE = os.path.dirname(os.path.abspath(__file__))
     WRITE = EXECUTABLE
     LOAD = RELATIVE if LOAD_RELATIVE else (MEIPASS if LOAD_MEIPASS and getattr(sys, 'frozen', False) else EXECUTABLE)
-    LOG = os.path.join(LOAD, LOG_PATH_RELATIVE)
+    LOG = os.path.join(WRITE, LOG_PATH_RELATIVE)
     MEDIA = os.path.join(LOAD, MEDIA_PATH_RELATIVE)
     MEDIA_AUTONAME = os.path.join(LOAD, MEDIA_AUTONAME_ADD_PATH_RELATIVE)
     DB = os.path.join(LOAD, DB_PATH_RELATIVE)

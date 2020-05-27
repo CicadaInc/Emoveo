@@ -18,3 +18,43 @@ Wed May 27 17:53:03 2020
   File "D:\Python\lib\xml\etree\ElementTree.py", line 584, in parse
     source = open(source, "rb")
 
+
+Wed May 27 22:41:40 2020
+1590601300.634297 SSTE
+<class 'FileNotFoundError'>
+[Errno 2] No such file or directory: 'C:\\Users\\admin\\AppData\\Local\\Temp\\_MEI61802\\UI\\MainMenu.ui'
+  File "run_desktop.py", line 1, in <module>
+    from app import Main
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "d:\python\lib\site-packages\PyInstaller\loader\pyimod03_importers.py", line 623, in exec_module
+    exec(bytecode, module.__dict__)
+  File "app.py", line 73, in <module>
+    class MainMenu(Tab, uic.loadUiType(get_path("UI\\MainMenu.ui"))[0]):
+  File "site-packages\PyQt5\uic\__init__.py", line 199, in loadUiType
+  File "site-packages\PyQt5\uic\Compiler\compiler.py", line 111, in compileUi
+  File "site-packages\PyQt5\uic\uiparser.py", line 1020, in parse
+  File "xml\etree\ElementTree.py", line 1202, in parse
+  File "xml\etree\ElementTree.py", line 584, in parse
+
+
+Wed May 27 22:41:49 2020
+1590601309.3017926 SSTE
+<class 'FileNotFoundError'>
+[Errno 2] No such file or directory: 'C:\\Users\\admin\\AppData\\Local\\Temp\\_MEI19842\\UI\\MainMenu.ui'
+  File "run_desktop.py", line 1, in <module>
+    from app import Main
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "d:\python\lib\site-packages\PyInstaller\loader\pyimod03_importers.py", line 623, in exec_module
+    exec(bytecode, module.__dict__)
+  File "app.py", line 73, in <module>
+    class MainMenu(Tab, uic.loadUiType(get_path("UI\\MainMenu.ui"))[0]):
+  File "site-packages\PyQt5\uic\__init__.py", line 199, in loadUiType
+  File "site-packages\PyQt5\uic\Compiler\compiler.py", line 111, in compileUi
+  File "site-packages\PyQt5\uic\uiparser.py", line 1020, in parse
+  File "xml\etree\ElementTree.py", line 1202, in parse
+  File "xml\etree\ElementTree.py", line 584, in parse
+

@@ -15,6 +15,7 @@ class Main:
             app = QtWidgets.QApplication(sys.argv)
             app.setApplicationName(APP_NAME)
             app.setOrganizationName(ORG_NAME)
+            app.setWindowIcon(QtGui.QIcon(get_media_path("icon.ico")))
         self.app = app
 
         self.main_window = QtWidgets.QMainWindow()
@@ -86,7 +87,7 @@ class TutorialTab(Tab, uic.loadUiType(get_path('UI\\TutorialTab.ui'))[0]):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.image.setPixmap(QtGui.QPixmap(get_media_path(db.find_media('emotions.jpg')['path'])))
+        self.image.setPixmap(QtGui.QPixmap(get_media_path("emotions.jpg")))
         self.back_button.clicked.connect(self.main.back)
 
 
