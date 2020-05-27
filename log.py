@@ -38,8 +38,6 @@ stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(FORMATTER)
 logger.addHandler(stream_handler)
 
-sys.excepthook = except_hook
-
 
 class LogEncoder(json.JSONEncoder):
     def encode(self, o):

@@ -1,5 +1,5 @@
-from test import *
-
+from testing import Test, db, CustomizableTest, Question
+from log import logger
 from settings import *
 
 from PyQt5 import QtCore, QtWidgets, QtGui, QtMultimedia, QtMultimediaWidgets, uic

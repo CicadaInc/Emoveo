@@ -15,7 +15,6 @@ MEDIA_FORMAT = {'image': {'.jpg', '.png', '.jpeg'}, 'video': {'.mp4', '.mkv', '.
 LOAD_RELATIVE = False
 LOAD_MEIPASS = True
 
-
 LOG_PATH_RELATIVE = 'Logs'
 MEDIA_PATH_RELATIVE = 'Media'
 MEDIA_AUTONAME_ADD_PATH_RELATIVE = os.path.join(MEDIA_PATH_RELATIVE, 'AUTONAME ADD')
@@ -52,10 +51,12 @@ def get_write_path(path):
 # MEDIA_AUTONAME_ADD_PATH = get_path(MEDIA_AUTONAME_ADD_PATH_RELATIVE)
 # DB_PATH = get_path(DB_PATH_RELATIVE)
 
-EXCEPTION_FILE = None
+EXCEPTION_FILE = 'exceptions.txt'
 
 
 def except_hook(cls, exception, c_traceback):
+    import logging
+    logging.error(str(cls), exc_info=exception)
     if not getattr(sys, 'frozen', False):
         sys.__excepthook__(cls, exception, c_traceback)
     if EXCEPTION_FILE:
@@ -66,3 +67,6 @@ def except_hook(cls, exception, c_traceback):
             error_file.write(str(cls) + '\n')
             error_file.write(str(exception) + '\n')
             error_file.write(''.join(traceback.format_tb(c_traceback)) + '\n')
+
+
+sys.excepthook = except_hook
