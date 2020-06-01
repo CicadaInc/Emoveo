@@ -101,6 +101,17 @@
     <layout class="QHBoxLayout" name="buttons_layout" stretch="1,2,1">
      <item>
       <widget class="QPushButton" name="back_button">
+       <property name="styleSheet">
+        <string notr="true">color: rgb(38, 0, 61);
+font: 75 12pt &quot;Levenim MT&quot;;
+background-color: rgb(234, 245, 237);
+border-radius: 2px;
+border: 2px solid #26003d;
+box-shadow: 4px 4px 4px rgba(8, 8, 8, 0.5)}
+QPushButton:hover {background-color: rgba(200, 229, 225, 0.7); 
+border: 2px solid #26003d;
+</string>
+       </property>
        <property name="text">
         <string>Назад</string>
        </property>
@@ -121,6 +132,17 @@
      </item>
      <item>
       <widget class="QPushButton" name="start_button">
+       <property name="styleSheet">
+        <string notr="true">color: rgb(38, 0, 61);
+font: 75 12pt &quot;Levenim MT&quot;;
+background-color: rgb(234, 245, 237);
+border-radius: 2px;
+border: 2px solid #26003d;
+box-shadow: 4px 4px 4px rgba(8, 8, 8, 0.5)}
+QPushButton:hover {background-color: rgba(200, 229, 225, 0.7); 
+border: 2px solid #26003d;
+</string>
+       </property>
        <property name="text">
         <string>Начать</string>
        </property>

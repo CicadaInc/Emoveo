@@ -75,6 +75,17 @@
        <layout class="QVBoxLayout" name="answer_layout">
         <item>
          <widget class="QPushButton" name="answer_button">
+          <property name="styleSheet">
+           <string notr="true">color: rgb(38, 0, 61);
+font: 75 12pt &quot;Levenim MT&quot;;
+background-color: rgb(234, 245, 237);
+border-radius: 2px;
+border: 2px solid #26003d;
+box-shadow: 4px 4px 4px rgba(8, 8, 8, 0.5)}
+QPushButton:hover {background-color: rgba(200, 229, 225, 0.7); 
+border: 2px solid #26003d;
+</string>
+          </property>
           <property name="text">
            <string>answer</string>
           </property>
@@ -89,6 +100,17 @@
     <layout class="QHBoxLayout" name="buttons_layout">
      <item>
       <widget class="QPushButton" name="end_button">
+       <property name="styleSheet">
+        <string notr="true">color: rgb(38, 0, 61);
+font: 75 12pt &quot;Levenim MT&quot;;
+background-color: rgb(234, 245, 237);
+border-radius: 2px;
+border: 2px solid #26003d;
+box-shadow: 4px 4px 4px rgba(8, 8, 8, 0.5)}
+QPushButton:hover {background-color: rgba(200, 229, 225, 0.7); 
+border: 2px solid #26003d;
+</string>
+       </property>
        <property name="text">
         <string>Завершить</string>
        </property>
@@ -96,6 +118,17 @@
      </item>
      <item>
       <widget class="QPushButton" name="skip_button">
+       <property name="styleSheet">
+        <string notr="true">color: rgb(38, 0, 61);
+font: 75 12pt &quot;Levenim MT&quot;;
+background-color: rgb(234, 245, 237);
+border-radius: 2px;
+border: 2px solid #26003d;
+box-shadow: 4px 4px 4px rgba(8, 8, 8, 0.5)}
+QPushButton:hover {background-color: rgba(200, 229, 225, 0.7); 
+border: 2px solid #26003d;
+</string>
+       </property>
        <property name="text">
         <string>Пропустить</string>
        </property>
@@ -103,6 +136,17 @@
      </item>
      <item>
       <widget class="QPushButton" name="next_button">
+       <property name="styleSheet">
+        <string notr="true">color: rgb(38, 0, 61);
+font: 75 12pt &quot;Levenim MT&quot;;
+background-color: rgb(234, 245, 237);
+border-radius: 2px;
+border: 2px solid #26003d;
+box-shadow: 4px 4px 4px rgba(8, 8, 8, 0.5)}
+QPushButton:hover {background-color: rgba(200, 229, 225, 0.7); 
+border: 2px solid #26003d;
+</string>
+       </property>
        <property name="text">
         <string>Далее</string>
        </property>
