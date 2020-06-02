@@ -9,7 +9,7 @@ import sqlite3 as sql
 class BaseDB:
 
     def __init__(self, db_path: str):
-        self.con = sql.connect(db_path)
+        self.con = sql.connect(db_path, check_same_thread=False)
         self._cursor = None
         self.con.row_factory = sql.Row
 
