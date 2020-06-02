@@ -7,17 +7,19 @@ from settings import get_media_path
 
 
 def start(update, context):
+    context.user_data['num_of_quests'] = 3
+
     db.cursor.execute("SELECT DISTINCT type FROM Questions")
     types = [e[0] for e in db.fetchall()]
 
     db.cursor.execute("SELECT DISTINCT difficulty FROM Questions WHERE difficulty > 0")
     difficulty = [e[0] for e in db.fetchall()]
 
-    context.user_data['test'] = CustomizableTest(3, type=types, difficulty=difficulty)
+    context.user_data['test'] = CustomizableTest(context.user_data['num_of_quests'], type=types, difficulty=difficulty)
     print(context.user_data['test'].question_ids)
 
-    update.message.reply_text('Hi there, this is Emoveo! To answer the questions '
-                              'choose either anger, contempt, sadness, surprise, fear or disgust.')
+    update.message.reply_text('Hi there, this is Emoveo! I can help you improve your emotional intelligence '
+                              'and ability to predict people\'s behavior. Let\'s go!')
 
     give_question(update, context)
 
@@ -27,9 +29,17 @@ def start(update, context):
 def check_answer(update, context):
     test = context.user_data['test']
     quest = test.question
-    variant_num = quest.variants.index(update.message.text.lower())
 
-    if quest.answer(variant_num):
+    variant_num = None
+    req_text = update.message.text.lower()
+    for variant in quest.variants:
+        if variant in req_text:
+            if variant_num is None:
+                variant_num = quest.variants.index(variant)
+            else:
+                return misunderstanding(update, context, CHECK_ANS)
+
+    if test.answer(variant_num):
         update.message.reply_text('You\'ve got it right! Good for you.')
     else:
         update.message.reply_text('Unfortunately, it\'s not an expression of {}. The right answer is {}.'.format(
@@ -37,18 +47,36 @@ def check_answer(update, context):
         ))
 
     test.next()
-    give_question(update, context)
 
-    return CHECK_ANS
+    if test.completed:
+        stats = test.stats['total'], test.stats['correct'], test.stats['incorrect'], test.stats['skipped']
+        update.message.reply_text('Here\'s your stats:'
+                                  'Total: {}\nCorrect: {}\nIncorrect: {}\nSkipped: {}\n'
+                                  'Do you want to try again?'.format(*stats))
+
+        return RESTART
+    else:
+        give_question(update, context)
+
+        return CHECK_ANS
 
 
 def give_question(update, context):
     quest = context.user_data['test'].question
+    update.message.reply_text('Question {}/{}\nTo answer this question choose either {}.'.format(
+        context.user_data['test'].stats['total'] + 1, context.user_data['num_of_quests'], ', '.join(quest.variants)))
+
     context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
 
 
 def quit_dialog(update, context):
     update.message.reply_text('Bye bye!')
+
+
+def misunderstanding(update, context, state):
+    update.message.reply_text('Sorry, I don\'t understand you. Could you repeat that in other words?')
+
+    return state
 
 
 def main():
@@ -59,9 +87,12 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            CHECK_ANS: [MessageHandler(Filters.regex(
-                re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)
-            ), check_answer)]
+            CHECK_ANS: [
+                MessageHandler(Filters.regex(
+                    re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)
+                ), check_answer),
+                MessageHandler(Filters.text, lambda update, context: misunderstanding(update, context, CHECK_ANS))
+            ]
         },
 
         fallbacks=[
@@ -77,7 +108,7 @@ def main():
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-CHECK_ANS = 1
+CHECK_ANS, RESTART = range(2)
 
 if __name__ == '__main__':
     main()
