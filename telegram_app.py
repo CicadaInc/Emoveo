@@ -25,15 +25,24 @@ def start(update, context):
 
 
 def check_answer(update, context):
-    update.message.reply_text('Answer\'s checked')
+    test = context.user_data['test']
+    quest = test.question
+    variant_num = quest.variants.index(update.message.text.lower())
 
+    if quest.answer(variant_num):
+        update.message.reply_text('You\'ve got it right! Good for you.')
+    else:
+        update.message.reply_text('Unfortunately, it\'s not an expression of {}. The right answer is {}.'.format(
+            quest.variants[variant_num], quest.variants[quest.correct]
+        ))
+
+    test.next()
     give_question(update, context)
 
     return CHECK_ANS
 
 
 def give_question(update, context):
-    # update.message.reply_text('Here\'s your message')
     quest = context.user_data['test'].question
     context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
 
@@ -50,7 +59,9 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            CHECK_ANS: [MessageHandler(Filters.regex('anger|contempt|sadness|surprise|fear|disgust'), check_answer)]
+            CHECK_ANS: [MessageHandler(Filters.regex(
+                re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)
+            ), check_answer)]
         },
 
         fallbacks=[
