@@ -3,6 +3,7 @@ import logging
 import re
 
 from testing import CustomizableTest, db
+from settings import get_media_path
 
 
 def start(update, context):
@@ -12,8 +13,8 @@ def start(update, context):
     db.cursor.execute("SELECT DISTINCT difficulty FROM Questions WHERE difficulty > 0")
     difficulty = [e[0] for e in db.fetchall()]
 
-    test = CustomizableTest(3, type=types, difficulty=difficulty)
-    print(test.question_ids)
+    context.user_data['test'] = CustomizableTest(3, type=types, difficulty=difficulty)
+    print(context.user_data['test'].question_ids)
 
     update.message.reply_text('Hi there, this is Emoveo! To answer the questions '
                               'choose either anger, contempt, sadness, surprise, fear or disgust.')
@@ -28,14 +29,16 @@ def check_answer(update, context):
 
     give_question(update, context)
 
-    return GIVE_QUEST
+    return CHECK_ANS
 
 
 def give_question(update, context):
-    update.message.reply_text('Here\'s your message')
+    # update.message.reply_text('Here\'s your message')
+    quest = context.user_data['test'].question
+    context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
 
 
-def quit_dial(update, context):
+def quit_dialog(update, context):
     update.message.reply_text('Bye bye!')
 
 
@@ -51,18 +54,19 @@ def main():
         },
 
         fallbacks=[
-            MessageHandler(Filters.regex(re.compile('stop|quit', re.IGNORECASE)), quit_dial),
-            CommandHandler('stop', quit_dial)
+            MessageHandler(Filters.regex(re.compile('stop|quit', re.IGNORECASE)), quit_dialog),
+            CommandHandler('stop', quit_dialog)
         ]
     )
 
     dp.add_handler(con_handler)
 
     updater.start_polling()
+    updater.idle()
 
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.WARNING)
-CHECK_ANS, GIVE_QUEST = range(2)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+CHECK_ANS = 1
 
 if __name__ == '__main__':
     main()
