@@ -2,21 +2,13 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, ConversationHa
 import logging
 import re
 
-from testing import CustomizableTest, db
+from testing import CustomizableTest
 from settings import get_media_path
 
 
 def start(update, context):
     context.user_data['num_of_quests'] = 3
-
-    db.cursor.execute("SELECT DISTINCT type FROM Questions")
-    types = [e[0] for e in db.fetchall()]
-
-    db.cursor.execute("SELECT DISTINCT difficulty FROM Questions WHERE difficulty > 0")
-    difficulty = [e[0] for e in db.fetchall()]
-
-    context.user_data['test'] = CustomizableTest(context.user_data['num_of_quests'], type=types, difficulty=difficulty)
-    print(context.user_data['test'].question_ids)
+    context.user_data['test'] = CustomizableTest(context.user_data['num_of_quests'])
 
     update.message.reply_text('Hi there, this is Emoveo! I can help you improve your emotional intelligence '
                               'and ability to predict people\'s behavior. Let\'s go!')
@@ -38,6 +30,8 @@ def check_answer(update, context):
                 variant_num = quest.variants.index(variant)
             else:
                 return misunderstanding(update, context, CHECK_ANS)
+    if variant_num is None:
+        return misunderstanding(update, context, CHECK_ANS)
 
     if test.answer(variant_num):
         update.message.reply_text('You\'ve got it right! Good for you.')
@@ -50,7 +44,7 @@ def check_answer(update, context):
 
     if test.completed:
         stats = test.stats['total'], test.stats['correct'], test.stats['incorrect'], test.stats['skipped']
-        update.message.reply_text('Here\'s your stats:'
+        update.message.reply_text('Here\'s your stats:\n'
                                   'Total: {}\nCorrect: {}\nIncorrect: {}\nSkipped: {}\n'
                                   'Do you want to try again?'.format(*stats))
 
@@ -69,8 +63,18 @@ def give_question(update, context):
     context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
 
 
+def restart(update, context):
+    update.message.reply_text('Let\'s begin then!\n')
+    context.user_data['test'] = CustomizableTest(context.user_data['num_of_quests'])
+    give_question(update, context)
+
+    return CHECK_ANS
+
+
 def quit_dialog(update, context):
-    update.message.reply_text('Bye bye!')
+    update.message.reply_text('I hope you had a great time. Bye!')
+
+    return ConversationHandler.END
 
 
 def misunderstanding(update, context, state):
@@ -88,15 +92,22 @@ def main():
 
         states={
             CHECK_ANS: [
-                MessageHandler(Filters.regex(
-                    re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)
-                ), check_answer),
-                MessageHandler(Filters.text, lambda update, context: misunderstanding(update, context, CHECK_ANS))
+                MessageHandler(FILTERS['all_variants'], check_answer),
+                MessageHandler(FILTERS['stopping'], quit_dialog),
+                CommandHandler('stop', quit_dialog),
+                MessageHandler(Filters.text, lambda update, context: misunderstanding(update, context, CHECK_ANS)),
+            ],
+            RESTART: [
+                MessageHandler(FILTERS['declined_restart'], quit_dialog),
+                MessageHandler(FILTERS['agreed_restart'], restart),
+                MessageHandler(FILTERS['stopping'], quit_dialog),
+                CommandHandler('stop', quit_dialog),
+                MessageHandler(Filters.text, lambda update, context: misunderstanding(update, context, RESTART))
             ]
         },
 
         fallbacks=[
-            MessageHandler(Filters.regex(re.compile('stop|quit', re.IGNORECASE)), quit_dialog),
+            MessageHandler(FILTERS['stopping'], quit_dialog),
             CommandHandler('stop', quit_dialog)
         ]
     )
@@ -109,6 +120,12 @@ def main():
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 CHECK_ANS, RESTART = range(2)
+FILTERS = {
+    'all_variants': Filters.regex(re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)),
+    'declined_restart': Filters.regex(re.compile('no', re.IGNORECASE)),
+    'agreed_restart': Filters.regex(re.compile('ok|yes|', re.IGNORECASE)),
+    'stopping': Filters.regex(re.compile('stop|quit|bye|goodbye', re.IGNORECASE))
+}
 
 if __name__ == '__main__':
     main()
