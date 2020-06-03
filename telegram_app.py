@@ -1,5 +1,5 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, ConversationHandler, Filters
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import logging
 import re
 
@@ -81,7 +81,8 @@ def restart(update, context):
 
 
 def quit_dialog(update, context):
-    update.message.reply_text('I hope you had a great time. Bye!')
+    update.message.reply_text('I hope you had a great time. Bye!', reply_markup=ReplyKeyboardRemove())
+    context.user_data.clear()
 
     return ConversationHandler.END
 
@@ -134,7 +135,7 @@ FILTERS = {
     'stopping': Filters.regex(re.compile('stop|quit|bye|goodbye', re.IGNORECASE)),
     'misunderstanding': Filters.regex(re.compile('^((?!stop|quit|bye|goodbye).)*$', re.IGNORECASE))
 }
-try_again_markup = ReplyKeyboardMarkup([['Yes', 'No']])
+try_again_markup = ReplyKeyboardMarkup([['Yes', 'No']], one_time_keyboard=True)
 
 if __name__ == '__main__':
     main()
