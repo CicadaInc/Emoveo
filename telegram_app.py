@@ -1,4 +1,5 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, ConversationHandler, Filters
+from telegram import ReplyKeyboardMarkup
 import logging
 import re
 
@@ -46,7 +47,8 @@ def check_answer(update, context):
         stats = test.stats['total'], test.stats['correct'], test.stats['incorrect'], test.stats['skipped']
         update.message.reply_text('Here\'s your stats:\n'
                                   'Total: {}\nCorrect: {}\nIncorrect: {}\nSkipped: {}\n'
-                                  'Do you want to try again?'.format(*stats))
+                                  'Do you want to try again?'.format(*stats),
+                                  reply_markup=try_again_markup)
 
         return RESTART
     else:
@@ -57,8 +59,15 @@ def check_answer(update, context):
 
 def give_question(update, context):
     quest = context.user_data['test'].question
-    update.message.reply_text('Question {}/{}\nTo answer this question choose either {}.'.format(
-        context.user_data['test'].stats['total'] + 1, context.user_data['num_of_quests'], ', '.join(quest.variants)))
+    print(quest.id)
+
+    vars_len = len(quest.variants)
+    ind = vars_len // 2 + vars_len % 2
+    markup = ReplyKeyboardMarkup([quest.variants[:ind], quest.variants[ind:]])
+
+    update.message.reply_text('Question {}/{}:\nTo answer this question choose either {}.'.format(
+        context.user_data['test'].stats['total'] + 1, context.user_data['num_of_quests'], ', '.join(quest.variants)),
+        reply_markup=markup)
 
     context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
 
@@ -93,16 +102,14 @@ def main():
         states={
             CHECK_ANS: [
                 MessageHandler(FILTERS['all_variants'], check_answer),
-                MessageHandler(FILTERS['stopping'], quit_dialog),
-                CommandHandler('stop', quit_dialog),
-                MessageHandler(Filters.text, lambda update, context: misunderstanding(update, context, CHECK_ANS)),
+                MessageHandler(FILTERS['misunderstanding'],
+                               lambda update, context: misunderstanding(update, context, CHECK_ANS)),
             ],
             RESTART: [
                 MessageHandler(FILTERS['declined_restart'], quit_dialog),
                 MessageHandler(FILTERS['agreed_restart'], restart),
-                MessageHandler(FILTERS['stopping'], quit_dialog),
-                CommandHandler('stop', quit_dialog),
-                MessageHandler(Filters.text, lambda update, context: misunderstanding(update, context, RESTART))
+                MessageHandler(FILTERS['misunderstanding'],
+                               lambda update, context: misunderstanding(update, context, RESTART))
             ]
         },
 
@@ -124,8 +131,10 @@ FILTERS = {
     'all_variants': Filters.regex(re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)),
     'declined_restart': Filters.regex(re.compile('no', re.IGNORECASE)),
     'agreed_restart': Filters.regex(re.compile('ok|yes|', re.IGNORECASE)),
-    'stopping': Filters.regex(re.compile('stop|quit|bye|goodbye', re.IGNORECASE))
+    'stopping': Filters.regex(re.compile('stop|quit|bye|goodbye', re.IGNORECASE)),
+    'misunderstanding': Filters.regex(re.compile('^((?!stop|quit|bye|goodbye).)*$', re.IGNORECASE))
 }
+try_again_markup = ReplyKeyboardMarkup([['Yes', 'No']])
 
 if __name__ == '__main__':
     main()
