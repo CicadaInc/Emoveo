@@ -39,6 +39,7 @@ def get_path(path):
 
 
 def get_media_path(path):
+    path = path.replace('\\', '/')
     return os.path.join(PATH.MEDIA, path)
 
 
