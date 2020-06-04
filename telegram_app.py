@@ -23,16 +23,10 @@ def check_answer(update, context):
     test = context.user_data['test']
     quest = test.question
 
-    variant_num = None
-    req_text = update.message.text.lower()
-    for variant in quest.variants:
-        if variant in req_text:
-            if variant_num is None:
-                variant_num = quest.variants.index(variant)
-            else:
-                return misunderstanding(update, context, CHECK_ANS)
-    if variant_num is None:
+    variant = set(re.findall('|'.join(quest.variants), update.message.text, re.IGNORECASE))
+    if len(variant) != 1:
         return misunderstanding(update, context, CHECK_ANS)
+    variant_num = quest.variants.index(variant.pop())
 
     if test.answer(variant_num):
         update.message.reply_text('You\'ve got it right! Good for you.')
@@ -114,6 +108,9 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
+            # CHOOSE_QUEST_NUM: [
+            #     MessageHandler()
+            # ],
             CHECK_ANS: [
                 MessageHandler(FILTERS['all_variants'], check_answer),
                 MessageHandler(FILTERS['skipping'], skip_question),
@@ -141,7 +138,7 @@ def main():
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-CHECK_ANS, RESTART = range(2)
+CHECK_ANS, RESTART, CHOOSE_QUEST_NUM = range(3)
 FILTERS = {
     'all_variants': Filters.regex(re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)),
     'declined_restart': Filters.regex(re.compile('no', re.IGNORECASE)),
