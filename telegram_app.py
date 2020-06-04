@@ -3,16 +3,28 @@ from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import logging
 import re
 
-from testing import CustomizableTest
+from testing import CustomizableTest, db
 from settings import get_media_path
 
 
 def start(update, context):
-    context.user_data['num_of_quests'] = 3
+    update.message.reply_text('Hi there, this is Emoveo! I can help you improve your emotional intelligence '
+                              'and ability to predict people\'s behavior.\n'
+                              'how many questions would you like to play (from 1 to {})?'.format(MAX_QUEST_NUM),
+                              reply_markup=quest_num_markup)
+
+    return CHOOSE_QUEST_NUM
+
+
+def choose_quest_num(update, context):
+    quest_num = set(re.findall(find_template, update.message.text))
+    if len(quest_num) > 1:
+        return misunderstanding(update, context, CHOOSE_QUEST_NUM)
+
+    context.user_data['num_of_quests'] = int(quest_num.pop())
     context.user_data['test'] = CustomizableTest(context.user_data['num_of_quests'])
 
-    update.message.reply_text('Hi there, this is Emoveo! I can help you improve your emotional intelligence '
-                              'and ability to predict people\'s behavior. Let\'s go!')
+    update.message.reply_text('Alright, we\'re gonna start now.')
 
     give_question(update, context)
 
@@ -23,7 +35,7 @@ def check_answer(update, context):
     test = context.user_data['test']
     quest = test.question
 
-    variant = set(re.findall('|'.join(quest.variants), update.message.text, re.IGNORECASE))
+    variant = set(re.findall('|'.join(quest.variants), update.message.text.lower()))
     if len(variant) != 1:
         return misunderstanding(update, context, CHECK_ANS)
     variant_num = quest.variants.index(variant.pop())
@@ -59,7 +71,8 @@ def give_question(update, context):
         context.user_data['test'].stats['total'] + 1, context.user_data['num_of_quests'], ', '.join(quest.variants)),
         reply_markup=markup)
 
-    context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
+    if quest.type == 'video':
+        context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
 
 
 def proceed(update, context):
@@ -80,11 +93,9 @@ def proceed(update, context):
 
 
 def restart(update, context):
-    update.message.reply_text('Let\'s begin then!\n')
-    context.user_data['test'] = CustomizableTest(context.user_data['num_of_quests'])
-    give_question(update, context)
+    context.user_data.clear()
 
-    return CHECK_ANS
+    return start(update, context)
 
 
 def quit_dialog(update, context):
@@ -108,9 +119,11 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            # CHOOSE_QUEST_NUM: [
-            #     MessageHandler()
-            # ],
+            CHOOSE_QUEST_NUM: [
+                MessageHandler(FILTERS['quest_num_choice'], choose_quest_num),
+                MessageHandler(FILTERS['misunderstanding'],
+                               lambda update, context: misunderstanding(update, context, CHOOSE_QUEST_NUM))
+            ],
             CHECK_ANS: [
                 MessageHandler(FILTERS['all_variants'], check_answer),
                 MessageHandler(FILTERS['skipping'], skip_question),
@@ -138,16 +151,28 @@ def main():
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+# Amount of questions in the db must be a double figure
+db.cursor.execute('SELECT COUNT(*) FROM Questions')
+MAX_QUEST_NUM = db.fetchone()[0]
+find_template = '[1-{}][0-{}]|[1-{}]'.format(
+    str(MAX_QUEST_NUM)[0], str(MAX_QUEST_NUM)[1], str(min(9, MAX_QUEST_NUM)))
+filter_template = r'^\D*[1-{}]\D*$|^\D*[1-{}][0-{}]\D*$'.format(
+    str(min(9, MAX_QUEST_NUM)), str(MAX_QUEST_NUM)[0], str(MAX_QUEST_NUM)[1])
+
 CHECK_ANS, RESTART, CHOOSE_QUEST_NUM = range(3)
 FILTERS = {
     'all_variants': Filters.regex(re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)),
-    'declined_restart': Filters.regex(re.compile('no', re.IGNORECASE)),
+    'declined_restart': Filters.regex(re.compile(r'\bno\b', re.IGNORECASE)),
     'agreed_restart': Filters.regex(re.compile('ok|yes', re.IGNORECASE)),
+    'quest_num_choice': Filters.regex(filter_template),
     'skipping': Filters.regex(re.compile('skip|pass', re.IGNORECASE)),
     'stopping': Filters.regex(re.compile('stop|quit|bye|goodbye', re.IGNORECASE)),
-    'misunderstanding': Filters.regex(re.compile('^((?!stop|quit|bye|goodbye).)*$', re.IGNORECASE)),
+    'misunderstanding': Filters.regex(re.compile('^((?!stop|quit|bye).)*$', re.IGNORECASE)),
 }
+
 try_again_markup = ReplyKeyboardMarkup([['Yes', 'No']], one_time_keyboard=True)
+quest_num_markup = ReplyKeyboardMarkup([['3', '4'], ['5', '6']], one_time_keyboard=True)
 
 if __name__ == '__main__':
     main()
