@@ -43,6 +43,34 @@ def check_answer(update, context):
 
     test.next()
 
+    return proceed(update, context)
+
+
+def skip_question(update, context):
+    update.message.reply_text('The question\'s been skipped')
+    context.user_data['test'].skip()
+
+    return proceed(update, context)
+
+
+def give_question(update, context):
+    quest = context.user_data['test'].question
+    print(quest.id)
+
+    vars_len = len(quest.variants)
+    ind = vars_len // 2 + vars_len % 2
+    markup = ReplyKeyboardMarkup([quest.variants[:ind], quest.variants[ind:], ['skip']])
+
+    update.message.reply_text('Question {}/{}:\nTo answer this question choose either {}.'.format(
+        context.user_data['test'].stats['total'] + 1, context.user_data['num_of_quests'], ', '.join(quest.variants)),
+        reply_markup=markup)
+
+    context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
+
+
+def proceed(update, context):
+    test = context.user_data['test']
+
     if test.completed:
         stats = test.stats['total'], test.stats['correct'], test.stats['incorrect'], test.stats['skipped']
         update.message.reply_text('Here\'s your stats:\n'
@@ -55,21 +83,6 @@ def check_answer(update, context):
         give_question(update, context)
 
         return CHECK_ANS
-
-
-def give_question(update, context):
-    quest = context.user_data['test'].question
-    print(quest.id)
-
-    vars_len = len(quest.variants)
-    ind = vars_len // 2 + vars_len % 2
-    markup = ReplyKeyboardMarkup([quest.variants[:ind], quest.variants[ind:]])
-
-    update.message.reply_text('Question {}/{}:\nTo answer this question choose either {}.'.format(
-        context.user_data['test'].stats['total'] + 1, context.user_data['num_of_quests'], ', '.join(quest.variants)),
-        reply_markup=markup)
-
-    context.bot.send_video(update.effective_chat.id, open(get_media_path(quest.media['path']), 'rb'))
 
 
 def restart(update, context):
@@ -103,6 +116,7 @@ def main():
         states={
             CHECK_ANS: [
                 MessageHandler(FILTERS['all_variants'], check_answer),
+                MessageHandler(FILTERS['skipping'], skip_question),
                 MessageHandler(FILTERS['misunderstanding'],
                                lambda update, context: misunderstanding(update, context, CHECK_ANS)),
             ],
@@ -131,9 +145,10 @@ CHECK_ANS, RESTART = range(2)
 FILTERS = {
     'all_variants': Filters.regex(re.compile('anger|contempt|sadness|surprise|fear|disgust', re.IGNORECASE)),
     'declined_restart': Filters.regex(re.compile('no', re.IGNORECASE)),
-    'agreed_restart': Filters.regex(re.compile('ok|yes|', re.IGNORECASE)),
+    'agreed_restart': Filters.regex(re.compile('ok|yes', re.IGNORECASE)),
+    'skipping': Filters.regex(re.compile('skip|pass', re.IGNORECASE)),
     'stopping': Filters.regex(re.compile('stop|quit|bye|goodbye', re.IGNORECASE)),
-    'misunderstanding': Filters.regex(re.compile('^((?!stop|quit|bye|goodbye).)*$', re.IGNORECASE))
+    'misunderstanding': Filters.regex(re.compile('^((?!stop|quit|bye|goodbye).)*$', re.IGNORECASE)),
 }
 try_again_markup = ReplyKeyboardMarkup([['Yes', 'No']], one_time_keyboard=True)
 
