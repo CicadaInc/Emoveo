@@ -111,6 +111,12 @@ def misunderstanding(update, context, state):
     return state
 
 
+def show_help(update, context, state):
+    update.message.reply_text('Sorry, hints aren\'t translated in english yet.')
+
+    return state
+
+
 def main():
     updater = Updater(token='1211631725:AAELMhYKQFr0Ughho30o8k_X2FooemTcmOc', use_context=True)
     dp = updater.dispatcher
@@ -121,14 +127,18 @@ def main():
         states={
             CHOOSE_QUEST_NUM: [
                 MessageHandler(FILTERS['quest_num_choice'], choose_quest_num),
+                MessageHandler(FILTERS['help'], lambda update, context: show_help(update, context, CHOOSE_QUEST_NUM)),
+                CommandHandler('help', lambda update, context: show_help(update, context, CHOOSE_QUEST_NUM)),
                 MessageHandler(FILTERS['misunderstanding'],
                                lambda update, context: misunderstanding(update, context, CHOOSE_QUEST_NUM))
             ],
             CHECK_ANS: [
                 MessageHandler(FILTERS['all_variants'], check_answer),
                 MessageHandler(FILTERS['skipping'], skip_question),
+                MessageHandler(FILTERS['help'], lambda update, context: show_help(update, context, CHECK_ANS)),
+                CommandHandler('help', lambda update, context: show_help(update, context, CHECK_ANS)),
                 MessageHandler(FILTERS['misunderstanding'],
-                               lambda update, context: misunderstanding(update, context, CHECK_ANS)),
+                               lambda update, context: misunderstanding(update, context, CHECK_ANS))
             ],
             RESTART: [
                 MessageHandler(FILTERS['declined_restart'], quit_dialog),
@@ -169,6 +179,7 @@ FILTERS = {
     'skipping': Filters.regex(re.compile('skip|pass', re.IGNORECASE)),
     'stopping': Filters.regex(re.compile('stop|quit|bye|goodbye', re.IGNORECASE)),
     'misunderstanding': Filters.regex(re.compile('^((?!stop|quit|bye).)*$', re.IGNORECASE)),
+    'help': Filters.regex(re.compile('help|hint', re.IGNORECASE))
 }
 
 try_again_markup = ReplyKeyboardMarkup([['Yes', 'No']], one_time_keyboard=True)
