@@ -161,7 +161,7 @@ class DB(BaseDB):
         return max(map(
             lambda e:
             int(e.split('.')[0])
-            if e.rsplit('.', 1)[0].isdigit() and os.path.isfile(os.path.join(PATH.MEDIA, e))
+            if e.rsplit('.', 1)[0].isdigit() and os.path.isfile(get_media_path(e))
             else 0,
             os.listdir(PATH.MEDIA)
         )) + 1
@@ -175,7 +175,7 @@ class DB(BaseDB):
             MEDIA_PATH для добавления под старым именем.
         :param kwargs: Значения остальных колонок
         """
-        path = os.path.normcase(os.path.normpath(path))
+        path = normpath(path)
         ext = '.' + path.rsplit('.', 1)[-1].lower()
 
         for type, formats in MEDIA_FORMAT.items():
@@ -191,9 +191,12 @@ class DB(BaseDB):
             logger.warning("Adding file with forced type \"%s\"" % (force_type,))
         kwargs['type'] = force_type
 
-        if os.path.isfile(os.path.join(PATH.MEDIA_AUTONAME, path)):
+        if os.path.isfile(normpath(os.path.join(PATH.MEDIA_AUTONAME, path))):
             old_path, path = path, str(self.auto_media_name()) + ext
-            os.rename(os.path.join(PATH.MEDIA_AUTONAME, old_path), get_media_path(path))
+            os.rename(
+                normpath(os.path.join(PATH.MEDIA_AUTONAME, old_path)),
+                get_media_path(path)
+            )
         elif os.path.isfile(get_media_path(path)):
             pass
         else:
@@ -203,7 +206,7 @@ class DB(BaseDB):
         #     "INSERT INTO Media (type, path) VALUES (?, ?)",
         #     (type, os.path.normcase(os.path.normpath(path))))
         # self.con.commit()
-        kwargs['path'] = os.path.normcase(os.path.normpath(path))
+        kwargs['path'] = normpath(path)
         self.add('Media', kwargs)
         return path
 
@@ -219,8 +222,8 @@ class DB(BaseDB):
             return self.get_media(int(media))
         elif os.path.isfile(get_media_path(media)):
             self.cursor.execute(
-                "SELECT * FROM Media WHERE path = ?",
-                (os.path.normcase(os.path.normpath(media)),))
+                "SELECT * FROM Media WHERE path = ? COLLATE NOCASE",
+                (normpath(media),))
             res = self.cursor.fetchone()
             del self.cursor
             return res

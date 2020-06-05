@@ -1,4 +1,4 @@
-from settings import get_media_path
+from settings import get_path
 import os
 
 include = ['media', 'ui']
@@ -39,8 +39,8 @@ with open(SPEC_PATH_ONE_FILE if one_file else SPEC_PATH, mode='r') as spec_file:
              include_data else
              spec_file.read()).replace(
                 'icon=""',
-                ('icon="%s"' % (get_media_path('icon.ico'),)) if
-                os.path.isfile(get_media_path('icon.ico')) else
+                ('icon="%s"' % (get_path('UI\\icon.ico'),)) if
+                os.path.isfile(get_path('UI\\icon.ico')) else
                 ''
             )
         )

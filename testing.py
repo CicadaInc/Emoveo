@@ -17,12 +17,14 @@ class Question:
                  type: str,
                  correct: int,
                  variants: Iterable[str],
+                 difficulty: int,
                  media: dict = None):
         self.id = id
         self.text = text
         self.type = type
         self.correct = correct
         self.variants = list(variants)
+        self.difficulty = difficulty
         self.media = dict(media)
         self.answered = 0
 
@@ -32,7 +34,7 @@ class Question:
         if not data:
             raise IndexError("Incorrect question id \"%d\"" % (id,))
         return cls(data['id'], data['text'], data['type'],
-                   data['correct'], data['variants'].split(';'),
+                   data['correct'], data['variants'].split(';'), data['difficulty'],
                    dict(db.get_media(data['media'])) if data['media'] else {})
 
     def answer(self, k: int) -> bool:

@@ -21,30 +21,33 @@ MEDIA_AUTONAME_ADD_PATH_RELATIVE = os.path.join(MEDIA_PATH_RELATIVE, 'AUTONAME A
 DB_PATH_RELATIVE = 'database.db'
 
 
+def normpath(path):
+    return os.path.normpath(path).replace('\\', '/')
+
+
 class PATH:
-    EXECUTABLE = os.getcwd()
+    EXECUTABLE = normpath(os.getcwd())
     RELATIVE = '.'
-    MEIPASS = getattr(sys, '_MEIPASS', EXECUTABLE)
-    ENGINE = os.path.dirname(os.path.abspath(__file__))
+    MEIPASS = normpath(getattr(sys, '_MEIPASS', EXECUTABLE))
+    ENGINE = normpath(os.path.dirname(os.path.abspath(__file__)))
     WRITE = EXECUTABLE
     LOAD = RELATIVE if LOAD_RELATIVE else (MEIPASS if LOAD_MEIPASS and getattr(sys, 'frozen', False) else EXECUTABLE)
-    LOG = os.path.join(WRITE, LOG_PATH_RELATIVE)
-    MEDIA = os.path.join(LOAD, MEDIA_PATH_RELATIVE)
-    MEDIA_AUTONAME = os.path.join(LOAD, MEDIA_AUTONAME_ADD_PATH_RELATIVE)
-    DB = os.path.join(LOAD, DB_PATH_RELATIVE)
+    LOG = normpath(os.path.join(WRITE, LOG_PATH_RELATIVE))
+    MEDIA = normpath(os.path.join(LOAD, MEDIA_PATH_RELATIVE))
+    MEDIA_AUTONAME = normpath(os.path.join(LOAD, MEDIA_AUTONAME_ADD_PATH_RELATIVE))
+    DB = normpath(os.path.join(LOAD, DB_PATH_RELATIVE))
 
 
 def get_path(path):
-    return os.path.join(PATH.LOAD, path)
+    return normpath(os.path.join(PATH.LOAD, path))
 
 
 def get_media_path(path):
-    path = path.replace('\\', '/')
-    return os.path.join(PATH.MEDIA, path)
+    return normpath(os.path.join(PATH.MEDIA, path))
 
 
 def get_write_path(path):
-    return os.path.join(PATH.WRITE, path)
+    return normpath(os.path.join(PATH.WRITE, path))
 
 
 # LOG_PATH = get_path(LOG_PATH_RELATIVE)

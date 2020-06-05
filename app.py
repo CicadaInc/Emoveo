@@ -15,7 +15,7 @@ class Main:
             app = QtWidgets.QApplication(sys.argv)
             app.setApplicationName(APP_NAME)
             app.setOrganizationName(ORG_NAME)
-            app.setWindowIcon(QtGui.QIcon(get_media_path("icon.ico")))
+            app.setWindowIcon(QtGui.QIcon(get_path("UI\\icon.ico")))
         self.app = app
 
         self.main_window = QtWidgets.QMainWindow()
@@ -82,12 +82,17 @@ class MainMenu(Tab, uic.loadUiType(get_path("UI\\MainMenu.ui"))[0]):
             lambda: self.main.set_tab(self.main.training_tab)
         )
 
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+        painter.drawPixmap(self.rect(), QtGui.QPixmap(get_path("UI\\background.png")))
+        painter.end()
+
 
 class TutorialTab(Tab, uic.loadUiType(get_path('UI\\TutorialTab.ui'))[0]):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.image.setPixmap(QtGui.QPixmap(get_media_path("emotions.jpg")))
+        self.image.setPixmap(QtGui.QPixmap(get_path("UI\\emotions.jpg")))
         self.back_button.clicked.connect(self.main.back)
 
 
@@ -109,7 +114,8 @@ class TrainingTab(Tab, uic.loadUiType(get_path("UI\\TrainingTab.ui"))[0]):
         self.types = [e[0] for e in db.fetchall()]
         for type in self.types:
             checkbox = QtWidgets.QCheckBox()
-            checkbox.setStyle(self.type_checkbox.style())
+            # checkbox.setStyle(self.type_checkbox.style())
+            checkbox.setStyleSheet(self.type_checkbox.styleSheet())
             checkbox.setText(type)
             checkbox.setChecked(True)
             checkbox.stateChanged.connect(
@@ -122,7 +128,8 @@ class TrainingTab(Tab, uic.loadUiType(get_path("UI\\TrainingTab.ui"))[0]):
         self.difficulty = [e[0] for e in db.fetchall()]
         for difficulty in self.difficulty:
             checkbox = QtWidgets.QCheckBox()
-            checkbox.setStyle(self.difficulty_checkbox.style())
+            # checkbox.setStyle(self.difficulty_checkbox.style())
+            checkbox.setStyleSheet(self.difficulty_checkbox.styleSheet())
             checkbox.setText(str(difficulty))
             checkbox.setChecked(True)
             checkbox.stateChanged.connect(
@@ -166,7 +173,8 @@ class QuestionTab(Tab, uic.loadUiType(get_path("UI\\QuestionTab.ui"))[0]):
         self.answer_widgets: List[QtWidgets.QWidget] = []
 
         video_label = VideoPlayer()
-        video_label.setStyle(self.video_label.style())
+        # video_label.setStyle(self.video_label.style())
+        video_label.setStyleSheet(self.video_label.styleSheet())
         self.video_label.parent().layout().replaceWidget(self.video_label, video_label)
         self.video_label.deleteLater()
         self.video_label = video_label
@@ -183,13 +191,15 @@ class QuestionTab(Tab, uic.loadUiType(get_path("UI\\QuestionTab.ui"))[0]):
         self.next_button.setDisabled(True)
 
         self.answer_button.hide()
+        self.answer_button_correct.hide()
+        self.answer_button_incorrect.hide()
 
     def answer(self, n: int):
         for i in self.answer_widgets:
             i.setDisabled(True)
         if not self.test.answer(n):
-            self.answer_widgets[n].setStyleSheet("background-color: red")
-        self.answer_widgets[self.question.correct].setStyleSheet("background-color: green")
+            self.answer_widgets[n].setStyleSheet(self.answer_button_incorrect.styleSheet())
+        self.answer_widgets[self.question.correct].setStyleSheet(self.answer_button_correct.styleSheet())
         self.skip_button.setDisabled(True)
         self.next_button.setDisabled(False)
 
@@ -271,7 +281,8 @@ class QuestionTab(Tab, uic.loadUiType(get_path("UI\\QuestionTab.ui"))[0]):
         self.answer_widgets.clear()
         for n, text in enumerate(question_obj.variants):
             var = QtWidgets.QPushButton()
-            var.setStyle(self.answer_button.style())
+            # var.setStyle(self.answer_button.style())
+            var.setStyleSheet(self.answer_button.styleSheet())
             var.setText(text)
             var.clicked.connect(lambda *args, n=n: self.answer(n))
             self.answer_widgets.append(var)
@@ -369,13 +380,16 @@ class VideoPlayer(QtWidgets.QWidget, uic.loadUiType(get_path("UI\\VideoPlayer.ui
         self.setupUi(self)
 
         video_widget = QtMultimediaWidgets.QVideoWidget()
-        video_widget.setStyle(self.video_widget.style())
+        # video_widget.setStyle(self.video_widget.style())
+        video_widget.setStyleSheet(self.video_widget.styleSheet())
         self.video_widget.parent().layout().replaceWidget(self.video_widget, video_widget)
         self.video_widget.deleteLater()
         self.video_widget = video_widget
 
         self.video_player = QtMultimedia.QMediaPlayer(None,
                                                       QtMultimedia.QMediaPlayer.VideoSurface)
+        self.video_player.setVolume(0)
+        self.video_player.setNotifyInterval(100)
         self.video_player.error.connect(self.error)
         self.video_player.stateChanged.connect(self.media_state_changed)
 
@@ -383,6 +397,7 @@ class VideoPlayer(QtWidgets.QWidget, uic.loadUiType(get_path("UI\\VideoPlayer.ui
 
         self.play_button.clicked.connect(self.play)
 
+        self.video_slider.setTickInterval(1)
         self.video_slider.sliderMoved.connect(self.video_player.setPosition)
         self.video_player.durationChanged.connect(self.video_slider.setMaximum)
         self.video_player.positionChanged.connect(self.video_slider.setValue)

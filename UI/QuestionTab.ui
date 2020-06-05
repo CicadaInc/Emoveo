@@ -72,7 +72,7 @@
        <property name="title">
         <string/>
        </property>
-       <layout class="QVBoxLayout" name="answer_layout">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QPushButton" name="answer_button">
           <property name="styleSheet">
@@ -88,6 +88,42 @@ border: 2px solid #26003d;
           </property>
           <property name="text">
            <string>answer</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="answer_button_correct">
+          <property name="styleSheet">
+           <string notr="true">color: rgb(38, 0, 61);
+font: 75 12pt &quot;Levenim MT&quot;;
+background-color: green;
+border-radius: 2px;
+border: 2px solid #26003d;
+box-shadow: 4px 4px 4px rgba(8, 8, 8, 0.5)}
+QPushButton:hover {background-color: rgba(200, 229, 225, 0.7); 
+border: 2px solid #26003d;
+</string>
+          </property>
+          <property name="text">
+           <string>correct answer</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="answer_button_incorrect">
+          <property name="styleSheet">
+           <string notr="true">color: rgb(38, 0, 61);
+font: 75 12pt &quot;Levenim MT&quot;;
+background-color: red;
+border-radius: 2px;
+border: 2px solid #26003d;
+box-shadow: 4px 4px 4px rgba(8, 8, 8, 0.5)}
+QPushButton:hover {background-color: rgba(200, 229, 225, 0.7); 
+border: 2px solid #26003d;
+</string>
+          </property>
+          <property name="text">
+           <string>incorrect answer</string>
           </property>
          </widget>
         </item>

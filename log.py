@@ -15,7 +15,7 @@ logger.setLevel(LOG_LEVEL)
 if not os.path.isdir(PATH.LOG):
     os.mkdir(PATH.LOG)
 
-last_handler = logging.FileHandler(os.path.join(PATH.LOG, 'last.log'), mode='w')
+last_handler = logging.FileHandler(normpath(os.path.join(PATH.LOG, 'last.log')), mode='w')
 last_handler.setFormatter(FORMATTER)
 logger.addHandler(last_handler)
 
@@ -29,7 +29,7 @@ form = {
     "sec": session_time.tm_sec
 }
 session_handler = logging.FileHandler(
-    os.path.join(PATH.LOG, 'session ' + LOG_FILE_PATTERN.format(**form) + '.log'),
+    normpath(os.path.join(PATH.LOG, 'session ' + LOG_FILE_PATTERN.format(**form) + '.log')),
     mode='w')
 session_handler.setFormatter(FORMATTER)
 logger.addHandler(session_handler)
