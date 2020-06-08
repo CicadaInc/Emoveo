@@ -344,10 +344,10 @@ class StatsTab(Tab, uic.loadUiType(get_path("UI\\StatsTab.ui"))[0]):
         super().__init__(*args, **kwargs)
         self._stats = {}
         self.patterns = {
-            'total': "Total {total}",
-            'correct': "Correct: {correct} {correct_percent:.2f}%",
-            'skipped': "Skipped: {skipped} {skipped_percent:.2f}%",
-            'incorrect': "Incorrect: {incorrect} {incorrect_percent:.2f}%"
+            'total': "Всего {total}",
+            'correct': "Правильно: {correct} {correct_percent:.2f}%",
+            'skipped': "Пропущено: {skipped} {skipped_percent:.2f}%",
+            'incorrect': "Неправильно: {incorrect} {incorrect_percent:.2f}%"
         }
         self.stat_widgets = {
             'total': self.total_label,
